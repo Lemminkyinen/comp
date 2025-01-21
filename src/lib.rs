@@ -1,5 +1,5 @@
-pub use python_comp::list_comp;
 pub use python_comp::set_comp;
+pub use python_comp::vec_comp;
 
 #[cfg(test)]
 mod tests {
@@ -13,18 +13,14 @@ mod tests {
     #[case(vec![1,2,3])]
     #[case(vec![1,2,3].into_iter())]
     #[case(1..=3)]
-    fn iters(#[case] input: T)
-    where
-        T: IntoIterator,
-    {
-    }
+    fn iters(#[case] input: IntoIterator) {}
 
     #[apply(iters)]
     fn test_list_comprehension<T>(#[case] input: T)
     where
         T: IntoIterator<Item = i32>,
     {
-        let my_vec = list_comp![x * 2 for x in input];
+        let my_vec = vec_comp![x * 2 for x in input];
         assert_eq!(my_vec, vec![2, 4, 6]);
     }
 
@@ -33,7 +29,7 @@ mod tests {
     where
         T: IntoIterator<Item = i32>,
     {
-        let my_vec = list_comp![x + 2 for x in input];
+        let my_vec = vec_comp![x + 2 for x in input];
         assert_eq!(my_vec, vec![3, 4, 5]);
     }
 
@@ -42,7 +38,7 @@ mod tests {
     where
         T: IntoIterator<Item = i32>,
     {
-        let my_vec = list_comp![x for x in input];
+        let my_vec = vec_comp![x for x in input];
         assert_eq!(my_vec, vec![1, 2, 3]);
     }
 

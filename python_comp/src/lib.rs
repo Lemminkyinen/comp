@@ -38,7 +38,7 @@ impl Parse for Comprehension {
 
 /// Simple python like list comprehension
 #[proc_macro]
-pub fn list_comp(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
+pub fn vec_comp(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let parsed = parse_macro_input!(input as Comprehension);
 
     let Comprehension {
