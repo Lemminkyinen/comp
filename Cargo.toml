@@ -1,0 +1,9 @@
+[package]
+name = "comp"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+python_comp = {path = "python_comp"}
+rstest = "0.24.0"
+rstest_reuse = "0.7.0"
