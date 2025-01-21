@@ -1,42 +1,47 @@
 use proc_macro::TokenStream;
 use quote::quote;
-use syn::{parse::ParseStream, parse_macro_input, Expr, Ident, Token};
+use syn::{
+    parse::{Parse, ParseStream},
+    parse_macro_input, Expr, Ident, Token,
+};
 
-struct ListComp {
+struct Comprehension {
     mapping: Expr,
     var: Ident,
     sequence: Expr,
 }
 
-fn my_parser(i: ParseStream) -> syn::Result<ListComp> {
-    // x * 2
-    let mapping: Expr = i.parse()?;
+impl Parse for Comprehension {
+    fn parse(input: ParseStream) -> syn::Result<Self> {
+        // x * 2
+        let mapping: Expr = input.parse()?;
 
-    // for
-    i.parse::<Token![for]>()?;
+        // for
+        input.parse::<Token![for]>()?;
 
-    // x
-    let var: Ident = i.parse()?;
+        // x
+        let var: Ident = input.parse()?;
 
-    // in
-    i.parse::<Token![in]>()?;
+        // in
+        input.parse::<Token![in]>()?;
 
-    // sequence
-    let sequence: Expr = i.parse()?;
+        // sequence
+        let sequence: Expr = input.parse()?;
 
-    Ok(ListComp {
-        mapping,
-        var,
-        sequence,
-    })
+        Ok(Self {
+            mapping,
+            var,
+            sequence,
+        })
+    }
 }
 
 /// Simple python list comprehension
 #[proc_macro]
 pub fn list_comp(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
-    let parsed = parse_macro_input!(input with my_parser);
+    let parsed = parse_macro_input!(input as Comprehension);
 
-    let ListComp {
+    let Comprehension {
         mapping,
         var,
         sequence,
