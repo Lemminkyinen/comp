@@ -1,3 +1,4 @@
+pub use python_comp::iter_comp;
 pub use python_comp::set_comp;
 pub use python_comp::vec_comp;
 
@@ -47,8 +48,8 @@ mod tests {
     where
         T: IntoIterator<Item = i32>,
     {
-        let my_vec = set_comp![x * 2 for x in input];
-        assert_eq!(my_vec, HashSet::from([2, 4, 6]));
+        let my_set = set_comp![x * 2 for x in input];
+        assert_eq!(my_set, HashSet::from([2, 4, 6]));
     }
 
     #[apply(iters)]
@@ -56,8 +57,8 @@ mod tests {
     where
         T: IntoIterator<Item = i32>,
     {
-        let my_vec = set_comp![x + 2 for x in input];
-        assert_eq!(my_vec, HashSet::from([3, 4, 5]));
+        let my_set = set_comp![x + 2 for x in input];
+        assert_eq!(my_set, HashSet::from([3, 4, 5]));
     }
 
     #[apply(iters)]
@@ -65,7 +66,16 @@ mod tests {
     where
         T: IntoIterator<Item = i32>,
     {
-        let my_vec = set_comp! [x for x in input];
-        assert_eq!(my_vec, HashSet::from([1, 2, 3]));
+        let my_set = set_comp! [x for x in input];
+        assert_eq!(my_set, HashSet::from([1, 2, 3]));
+    }
+
+    #[apply(iters)]
+    fn test_iter_comprehension<T>(#[case] input: T)
+    where
+        T: IntoIterator<Item = i32>,
+    {
+        let my_iter = iter_comp![x for x in input];
+        assert!(Iterator::eq(my_iter, vec![1, 2, 3].into_iter()))
     }
 }
