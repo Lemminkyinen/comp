@@ -36,7 +36,7 @@ impl Parse for Comprehension {
     }
 }
 
-/// Simple python list comprehension
+/// Simple python like list comprehension
 #[proc_macro]
 pub fn list_comp(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let parsed = parse_macro_input!(input as Comprehension);
@@ -52,6 +52,27 @@ pub fn list_comp(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
         ::core::iter::IntoIterator::into_iter(#sequence)
             .map(|#var| #mapping)
             .collect::<Vec<_>>()
+    };
+
+    // Hand the output tokens back to the compiler
+    TokenStream::from(expanded)
+}
+
+/// Simple python like set comprehension
+#[proc_macro]
+pub fn set_comp(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
+    let parsed = parse_macro_input!(input as Comprehension);
+
+    let Comprehension {
+        mapping,
+        var,
+        sequence,
+    } = parsed;
+    // Build the output, possibly using quasi-quotation
+    let expanded = quote! {
+        ::core::iter::IntoIterator::into_iter(#sequence)
+            .map(|#var| #mapping)
+            .collect::<::std::collections::HashSet<_>>()
     };
 
     // Hand the output tokens back to the compiler

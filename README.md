@@ -6,6 +6,9 @@ Example
 ```rust
 let my_vec = list_comp![x * 2 for x in vec![1, 2, 3]];
 assert_eq(my_vec, vec![2, 4, 6]);
+
+let my_set = set_comp![x * 2 for x in vec![1, 2, 3]];
+assert_eq(my_set, HashSet::from([2, 4, 6]));
 ```
 
 ### Disclaimer
