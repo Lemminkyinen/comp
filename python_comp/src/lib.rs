@@ -7,13 +7,15 @@ use syn::{
 struct Comprehension {
     mapping: Mapping,
     for_if_clause: ForIfClause,
+    additional_for_if_clauses: AdditionalForIfClauses,
 }
 
 impl Parse for Comprehension {
     fn parse(input: ParseStream) -> syn::Result<Self> {
         let mapping = input.parse()?;
         let for_if_clause = input.parse()?;
-        Ok(Self { mapping, for_if_clause })
+        let additional_for_if_clauses = input.parse()?;
+        Ok(Self { mapping, for_if_clause, additional_for_if_clauses })
     }
 }
 
@@ -70,19 +72,26 @@ struct Conditions(Vec<Condition>);
 
 impl Parse for Conditions {
     fn parse(input: ParseStream) -> syn::Result<Self> {
-        // Calculate count of ifs
-        let mut count = 0;
-        let fork = input.fork();
-        while let Ok(_) = fork.parse::<Condition>() {
-            count += 1;
-        }
-
-        let mut vec = Vec::with_capacity(count);
-        while let Ok(x) = input.parse() {
-            vec.push(x);
-        }
-        Ok(Self(vec))
+        Ok(Self(parse_multiple(input)))
     }
+}
+
+fn parse_multiple<T>(input: ParseStream) -> Vec<T>
+where
+    T: Parse,
+{
+    // Calculate count of ifs
+    let mut count = 0;
+    let fork = input.fork();
+    while let Ok(_) = fork.parse::<T>() {
+        count += 1;
+    }
+
+    let mut vec = Vec::with_capacity(count);
+    while let Ok(x) = input.parse() {
+        vec.push(x);
+    }
+    vec
 }
 
 impl Parse for ForIfClause {
@@ -98,6 +107,14 @@ impl Parse for ForIfClause {
         let sequence = input.parse()?;
         let conditions = input.parse()?;
         Ok(Self { pattern, sequence, conditions })
+    }
+}
+
+struct AdditionalForIfClauses(Vec<ForIfClause>);
+
+impl Parse for AdditionalForIfClauses {
+    fn parse(input: ParseStream) -> syn::Result<Self> {
+        Ok(Self(parse_multiple(input)))
     }
 }
 
@@ -119,17 +136,37 @@ pub fn set_comp(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
 pub fn iter_comp(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let parsed = parse_macro_input!(input as Comprehension);
 
-    let Comprehension { mapping, for_if_clause: for_clause } = parsed;
-    let ForIfClause { pattern, sequence, conditions } = for_clause;
-    let Conditions(conditions) = conditions;
+    let Comprehension { mapping, for_if_clause, additional_for_if_clauses } = parsed;
 
-    // Build the output, using quasi-quotation
-    quote! {
-    ::core::iter::IntoIterator::into_iter(#sequence)
-        .filter_map(|#pattern| {
-            if true #(&& (#conditions))* { Some(#mapping) }
-            else { None }
+    let mut for_ifs = core::iter::once(for_if_clause)
+        .chain(additional_for_if_clauses.0.into_iter())
+        .rev();
+
+    let output = {
+        let first_if = for_ifs.next().expect("There is always one for if clause!");
+        let ForIfClause { pattern, sequence, conditions } = first_if;
+        let Conditions(conditions) = conditions;
+        quote! {
+            ::core::iter::IntoIterator::into_iter(#sequence)
+            .filter_map(|#pattern| {
+                if true #(&& (#conditions))* { Some(#mapping) }
+                else { None }
+            })
+        }
+    };
+
+    for_ifs
+        .fold(output, |cur_output, next_layer| {
+            let ForIfClause { pattern, sequence, conditions } = next_layer;
+            let Conditions(conditions) = conditions;
+            quote! {
+                ::core::iter::IntoIterator::into_iter(#sequence)
+                .filter_map(|#pattern| {
+                    if true #(&& (#conditions))* { Some(#cur_output) }
+                    else { None }
+                })
+                .flatten()
+            }
         })
-    }
-    .into()
+        .into()
 }

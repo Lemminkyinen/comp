@@ -105,4 +105,38 @@ mod tests {
         let my_iter = iter_comp![x for x in input if x != 2 if x != 1];
         assert!(Iterator::eq(my_iter, vec![3].into_iter()));
     }
+
+    #[rstest]
+    fn test_nested_comprehension_1() {
+        let input = vec![
+            vec![vec![1, 2, 3], vec![1, 2, 3]],
+            vec![vec![3, 2, 1], vec![3, 2, 1]],
+        ];
+        let my_iter = iter_comp![x for outer in input for inner in outer for x in inner];
+        assert!(Iterator::eq(
+            my_iter,
+            vec![1, 2, 3, 1, 2, 3, 3, 2, 1, 3, 2, 1]
+        ));
+    }
+
+    #[rstest]
+    fn test_nested_comprehension_2() {
+        let input = vec![
+            vec![vec![1, 2, 3], vec![1, 2, 3]],
+            vec![vec![3, 2, 1], vec![3, 2, 1]],
+        ];
+        let my_iter = iter_comp![x for outer in input for inner in outer for x in inner if x !=3];
+        assert!(Iterator::eq(my_iter, vec![1, 2, 1, 2, 2, 1, 2, 1]));
+    }
+
+    #[rstest]
+    fn test_nested_comprehension_3() {
+        let input = vec![
+            vec![vec![1, 2, 3], vec![1, 2, 3, 4]],
+            vec![vec![3, 2, 1], vec![3, 2, 1, 0]],
+        ];
+        let my_iter =
+            iter_comp![x for outer in input for inner in outer if inner.len() == 3 for x in inner];
+        assert!(Iterator::eq(my_iter, vec![1, 2, 3, 3, 2, 1]));
+    }
 }
