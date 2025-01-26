@@ -1,4 +1,3 @@
-use proc_macro::TokenStream;
 use quote::{quote, ToTokens};
 use syn::{
     parse::{Parse, ParseStream},
@@ -105,29 +104,15 @@ impl Parse for ForIfClause {
 /// Simple python like list comprehension
 #[proc_macro]
 pub fn vec_comp(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
-    let iter_result = iter_comp(input);
-    let iter_result = proc_macro2::TokenStream::from(iter_result);
-
-    // Build the output, possibly using quasi-quotation
-    let expanded = quote! {
-        #iter_result.collect::<Vec<_>>()
-    };
-
-    // Hand the output tokens back to the compiler
-    TokenStream::from(expanded)
+    let iter_result = proc_macro2::TokenStream::from(iter_comp(input));
+    quote! { #iter_result.collect::<::std::vec::Vec<_>>() }.into()
 }
 
 /// Simple python like set comprehension
 #[proc_macro]
 pub fn set_comp(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
-    let iter_result = iter_comp(input);
-    let iter_result = proc_macro2::TokenStream::from(iter_result);
-
-    let expanded = quote! {
-        #iter_result.collect::<::std::collections::HashSet<_>>()
-    };
-
-    TokenStream::from(expanded)
+    let iter_result = proc_macro2::TokenStream::from(iter_comp(input));
+    quote! { #iter_result.collect::<::std::collections::HashSet<_>>() }.into()
 }
 
 #[proc_macro]
@@ -138,14 +123,13 @@ pub fn iter_comp(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let ForIfClause { pattern, sequence, conditions } = for_clause;
     let Conditions(conditions) = conditions;
 
-    // Build the output, possibly using quasi-quotation
-    let expanded = quote! {
+    // Build the output, using quasi-quotation
+    quote! {
     ::core::iter::IntoIterator::into_iter(#sequence)
         .filter_map(|#pattern| {
-            if true #(&& (#conditions))* { Some(#mapping)}
+            if true #(&& (#conditions))* { Some(#mapping) }
             else { None }
         })
-    };
-
-    TokenStream::from(expanded)
+    }
+    .into()
 }
