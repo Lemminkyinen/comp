@@ -2,37 +2,39 @@ use proc_macro::TokenStream;
 use quote::quote;
 use syn::{
     parse::{Parse, ParseStream},
-    parse_macro_input, Expr, Ident, Token,
+    parse_macro_input, Expr, Pat, Token,
 };
 
 struct Comprehension {
     mapping: Expr,
-    var: Ident,
+    for_clause: ForClause,
+}
+
+struct ForClause {
+    pattern: Pat,
     sequence: Expr,
 }
 
 impl Parse for Comprehension {
     fn parse(input: ParseStream) -> syn::Result<Self> {
-        // x * 2
-        let mapping: Expr = input.parse()?;
+        let mapping = input.parse()?;
+        let for_clause = input.parse()?;
+        Ok(Self { mapping, for_clause })
+    }
+}
 
-        // for
+impl Parse for ForClause {
+    /// Parse
+    ///```python
+    ///_ = [x for x in iter]
+    ///#      ^^^^^^^^^^^^^
+    ///```
+    fn parse(input: ParseStream) -> syn::Result<Self> {
         input.parse::<Token![for]>()?;
-
-        // x
-        let var: Ident = input.parse()?;
-
-        // in
+        let pattern = Pat::parse_single(input)?;
         input.parse::<Token![in]>()?;
-
-        // sequence
-        let sequence: Expr = input.parse()?;
-
-        Ok(Self {
-            mapping,
-            var,
-            sequence,
-        })
+        let sequence = input.parse()?;
+        Ok(Self { pattern, sequence })
     }
 }
 
@@ -68,15 +70,13 @@ pub fn set_comp(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
 pub fn iter_comp(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let parsed = parse_macro_input!(input as Comprehension);
 
-    let Comprehension {
-        mapping,
-        var,
-        sequence,
-    } = parsed;
+    let Comprehension { mapping, for_clause } = parsed;
+    let ForClause { pattern, sequence } = for_clause;
+
     // Build the output, possibly using quasi-quotation
     let expanded = quote! {
         ::core::iter::IntoIterator::into_iter(#sequence)
-            .map(|#var| #mapping)
+            .map(|#pattern| #mapping)
     };
 
     TokenStream::from(expanded)
