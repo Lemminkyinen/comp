@@ -1,6 +1,6 @@
 # comp Macro Project
 
-This is a fun little project that implements a Rust procedural macro comprehensions! mimicking Python's list comprehension syntax. It allows you to iterate over iterables and apply transformations concisely.
+This is a fun little project that implements Rust procedural macro comprehensions! These comprehensions are micking Python's list comprehension syntax. They allow you to iterate over iterables and apply transformations concisely and in a Pythonic way :D
 
 Example
 ```rust
