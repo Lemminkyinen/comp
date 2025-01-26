@@ -1,0 +1,14 @@
+---
+name: Run unit tests
+
+on: [push]
+
+jobs:
+  unittest-rust:
+    name: cargo test
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+    steps:
+      - uses: actions/checkout@v4
+      - run: cargo test --all --verbose
