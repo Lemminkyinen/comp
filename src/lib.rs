@@ -76,7 +76,7 @@ mod tests {
         T: IntoIterator<Item = i32>,
     {
         let my_iter = iter_comp![x for x in input];
-        assert!(Iterator::eq(my_iter, vec![1, 2, 3].into_iter()))
+        assert!(Iterator::eq(my_iter, vec![1, 2, 3].into_iter()));
     }
 
     #[apply(iters)]
@@ -85,7 +85,7 @@ mod tests {
         T: IntoIterator<Item = i32>,
     {
         let my_iter = iter_comp![x for x in input if x != 2];
-        assert!(Iterator::eq(my_iter, vec![1, 3].into_iter()))
+        assert!(Iterator::eq(my_iter, vec![1, 3].into_iter()));
     }
 
     #[apply(iters)]
@@ -94,7 +94,7 @@ mod tests {
         T: IntoIterator<Item = i32>,
     {
         let my_iter = iter_comp![x for x in input if x != 2 && x != 3];
-        assert!(Iterator::eq(my_iter, vec![1].into_iter()))
+        assert!(Iterator::eq(my_iter, vec![1].into_iter()));
     }
 
     #[apply(iters)]
@@ -103,6 +103,6 @@ mod tests {
         T: IntoIterator<Item = i32>,
     {
         let my_iter = iter_comp![x for x in input if x != 2 if x != 1];
-        assert!(Iterator::eq(my_iter, vec![3].into_iter()))
+        assert!(Iterator::eq(my_iter, vec![3].into_iter()));
     }
 }

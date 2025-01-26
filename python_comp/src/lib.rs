@@ -64,18 +64,26 @@ impl ToTokens for Condition {
 struct ForIfClause {
     pattern: Pattern,
     sequence: Expr,
-    conditions: Vec<Condition>,
+    conditions: Conditions,
 }
 
-fn parse_multiple<T>(input: ParseStream) -> Vec<T>
-where
-    T: Parse,
-{
-    let mut vec = Vec::new();
-    while let Ok(x) = input.parse() {
-        vec.push(x);
+struct Conditions(Vec<Condition>);
+
+impl Parse for Conditions {
+    fn parse(input: ParseStream) -> syn::Result<Self> {
+        // Calculate count of ifs
+        let mut count = 0;
+        let fork = input.fork();
+        while let Ok(_) = fork.parse::<Condition>() {
+            count += 1;
+        }
+
+        let mut vec = Vec::with_capacity(count);
+        while let Ok(x) = input.parse() {
+            vec.push(x);
+        }
+        Ok(Self(vec))
     }
-    vec
 }
 
 impl Parse for ForIfClause {
@@ -89,7 +97,7 @@ impl Parse for ForIfClause {
         let pattern = input.parse()?;
         input.parse::<Token![in]>()?;
         let sequence = input.parse()?;
-        let conditions = parse_multiple(input);
+        let conditions = input.parse()?;
         Ok(Self { pattern, sequence, conditions })
     }
 }
@@ -128,6 +136,7 @@ pub fn iter_comp(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
 
     let Comprehension { mapping, for_if_clause: for_clause } = parsed;
     let ForIfClause { pattern, sequence, conditions } = for_clause;
+    let Conditions(conditions) = conditions;
 
     // Build the output, possibly using quasi-quotation
     let expanded = quote! {
