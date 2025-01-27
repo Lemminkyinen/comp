@@ -66,7 +66,7 @@ mod tests {
     where
         T: IntoIterator<Item = i32>,
     {
-        let my_set = set_comp! [x for x in input];
+        let my_set = set_comp![x for x in input];
         assert_eq!(my_set, HashSet::from([1, 2, 3]));
     }
 

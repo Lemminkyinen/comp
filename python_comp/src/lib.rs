@@ -23,7 +23,6 @@ impl Parse for Comprehension {
 
 impl ToTokens for Comprehension {
     fn to_tokens(&self, tokens: &mut TokenStream2) {
-        // let Comprehension { mapping, for_if_clause, additional_for_if_clauses }
         let mapping = &self.mapping;
         let for_if_clause = &self.for_if_clause;
         let additional_for_if_clauses = &self.additional_for_if_clauses;
@@ -171,20 +170,20 @@ impl Parse for AdditionalForIfClauses {
 
 /// Simple python like list comprehension
 #[proc_macro]
-pub fn vec_comp(input: proc_macro::TokenStream) -> TokenStream {
-    let iter_result: proc_macro2::TokenStream = iter_comp(input).into();
+pub fn vec_comp(input: TokenStream) -> TokenStream {
+    let iter_result: TokenStream2 = iter_comp(input).into();
     quote! { #iter_result.collect::<::std::vec::Vec<_>>() }.into()
 }
 
 /// Simple python like set comprehension
 #[proc_macro]
-pub fn set_comp(input: proc_macro::TokenStream) -> TokenStream {
-    let iter_result: proc_macro2::TokenStream = iter_comp(input).into();
+pub fn set_comp(input: TokenStream) -> TokenStream {
+    let iter_result: TokenStream2 = iter_comp(input).into();
     quote! { #iter_result.collect::<::std::collections::HashSet<_>>() }.into()
 }
 
 /// Simple python like iterator comprehension
 #[proc_macro]
-pub fn iter_comp(input: proc_macro::TokenStream) -> TokenStream {
+pub fn iter_comp(input: TokenStream) -> TokenStream {
     parse_macro_input!(input as Comprehension).into()
 }
